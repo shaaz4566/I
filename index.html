@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart AI Invoice Studio | Brand & Bill Generator</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    header { background: #fff; border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; position: sticky; top: 0; z-index: 50; }
+    .brand-title { display: flex; align-items: center; gap: 0.75rem; }
+    .brand-title h1 { font-size: 1.25rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.5rem; }
+    .badge { background: #e0f2fe; color: #0369a1; font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 9999px; }
+    .api-config { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .api-config input, .api-config select { padding: 0.45rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; background: #f8fafc; }
+    .main-layout { display: grid; grid-template-columns: 460px 1fr; gap: 1.5rem; padding: 1.5rem; flex: 1; max-width: 1700px; margin: 0 auto; width: 100%; }
+    @media (max-width: 1080px) { .main-layout { grid-template-columns: 1fr; } }
+    .controls-panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; max-height: calc(100vh - 100px); }
+    .tabs-header { display: flex; background: #f1f5f9; border-bottom: 1px solid var(--border); }
+    .tab-btn { flex: 1; padding: 0.75rem 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); border: none; background: transparent; cursor: pointer; text-align: center; }
+    .tab-btn.active { background: #fff; color: var(--primary); border-bottom: 2px solid var(--primary); }
+    .tab-content { padding: 1.25rem; overflow-y: auto; flex: 1; display: none; }
+    .tab-content.active { display: block; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; }
+    .form-control { width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; }
+    textarea.form-control { resize: vertical; min-height: 80px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.6rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #f1f5f9; color: #334155; border: 1px solid var(--border); }
+    .btn-danger { background: #fee2e2; color: #b91c1c; }
+    .btn-sm { padding: 0.35rem 0.65rem; font-size: 0.75rem; }
+    .btn-block { width: 100%; }
+    .prompt-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+    .chip { background: #f1f5f9; border: 1px solid var(--border); border-radius: 9999px; padding: 0.3rem 0.65rem; font-size: 0.75rem; color: #475569; cursor: pointer; }
+    .chip:hover { background: #e2e8f0; color: #0f172a; }
+    .dropzone { border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1.5rem 1rem; text-align: center; background: #f8fafc; cursor: pointer; }
+    .dropzone:hover { border-color: var(--primary); background: #eff6ff; }
+    .file-preview { margin-top: 0.75rem; padding: 0.5rem; background: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; }
+    .theme-picker { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; margin-bottom: 1rem; }
+    .theme-card { border: 2px solid var(--border); border-radius: 8px; padding: 0.6rem; cursor: pointer; text-align: center; background: #fff; }
+    .theme-card.active { border-color: var(--primary); background: #eff6ff; }
+    .theme-card .theme-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.15rem; }
+    .theme-card .theme-desc { font-size: 0.7rem; color: var(--text-muted); }
+    .preview-panel { display: flex; flex-direction: column; gap: 1rem; }
+    .preview-toolbar { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1.25rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; }
+    .invoice-wrapper { background: #cbd5e1; padding: 2rem 1rem; border-radius: var(--radius); display: flex; justify-content: center; overflow-x: auto; }
+    .invoice-paper { width: 100%; max-width: 820px; min-height: 1050px; background: #fff; padding: 3rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15); border-radius: 4px; display: flex; flex-direction: column; justify-content: space-between; color: #1e293b; }
+    [contenteditable="true"]:hover { outline: 1px dashed #3b82f6; background-color: rgba(59, 130, 246, 0.04); }
+    [contenteditable="true"]:focus { outline: 2px solid #3b82f6; background-color: rgba(59, 130, 246, 0.08); }
+
+    /* Nike Theme */
+    .theme-nike { font-family: "Impact", "Arial Black", -apple-system, sans-serif; color: #000; }
+    .theme-nike .inv-header { border-bottom: 4px solid #000; padding-bottom: 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; }
+    .theme-nike .inv-brand { font-size: 2.5rem; font-weight: 900; letter-spacing: -1.5px; text-transform: uppercase; }
+    .theme-nike .inv-tagline { font-family: -apple-system, sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #555; }
+    .theme-nike .inv-title-badge { background: #000; color: #fff; font-family: -apple-system, sans-serif; padding: 0.4rem 1rem; font-size: 0.85rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+    .theme-nike .inv-table th { background: #000; color: #fff; font-family: -apple-system, sans-serif; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; padding: 0.75rem 0.5rem; }
+    .theme-nike .inv-table td { font-family: -apple-system, sans-serif; border-bottom: 1px solid #e5e5e5; padding: 0.85rem 0.5rem; }
+    .theme-nike .inv-footer-brand { border-top: 4px solid #000; padding-top: 1.5rem; text-align: center; font-weight: 900; font-size: 1.25rem; letter-spacing: 2px; }
+
+    /* New Balance Theme */
+    .theme-newbalance { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1f2937; }
+    .theme-newbalance .inv-header { border-top: 8px solid #c8102e; padding-top: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; }
+    .theme-newbalance .inv-brand { font-size: 2.2rem; font-weight: 900; color: #c8102e; }
+    .theme-newbalance .inv-tagline { font-size: 0.8rem; font-weight: 600; letter-spacing: 1px; color: #4b5563; text-transform: uppercase; }
+    .theme-newbalance .inv-title-badge { background: #f3f4f6; border-left: 4px solid #c8102e; padding: 0.4rem 0.8rem; font-weight: 700; color: #111827; text-transform: uppercase; font-size: 0.8rem; }
+    .theme-newbalance .inv-table th { background: #f3f4f6; color: #374151; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; padding: 0.75rem 0.5rem; border-top: 1px solid #e5e7eb; border-bottom: 2px solid #c8102e; }
+    .theme-newbalance .inv-table td { border-bottom: 1px solid #f3f4f6; padding: 0.85rem 0.5rem; }
+    .theme-newbalance .inv-footer-brand { border-top: 2px solid #c8102e; padding-top: 1.5rem; text-align: center; font-size: 0.85rem; color: #6b7280; }
+
+    /* Cricket Club Theme */
+    .theme-cricket { font-family: "Georgia", serif; color: #064e3b; }
+    .theme-cricket .inv-header { background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); color: #fff; padding: 1.75rem 2rem; border-radius: 8px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .theme-cricket .inv-brand { font-size: 2rem; font-weight: 800; color: #fef08a; }
+    .theme-cricket .inv-tagline { font-family: -apple-system, sans-serif; font-size: 0.8rem; color: #a7f3d0; letter-spacing: 1px; text-transform: uppercase; }
+    .theme-cricket .inv-title-badge { background: #fef08a; color: #064e3b; font-family: -apple-system, sans-serif; padding: 0.5rem 1rem; border-radius: 4px; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; }
+    .theme-cricket .inv-table th { background: #ecfdf5; color: #064e3b; font-family: -apple-system, sans-serif; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; padding: 0.75rem 0.5rem; border-bottom: 2px solid #059669; }
+    .theme-cricket .inv-table td { font-family: -apple-system, sans-serif; border-bottom: 1px solid #e6f4ea; padding: 0.85rem 0.5rem; }
+    .theme-cricket .inv-footer-brand { border-top: 2px solid #059669; padding-top: 1.5rem; text-align: center; font-family: -apple-system, sans-serif; color: #047857; font-size: 0.85rem; }
+
+    /* Minimalist Theme */
+    .theme-minimal { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1e293b; }
+    .theme-minimal .inv-header { border-bottom: 1px solid #e2e8f0; padding-bottom: 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; }
+    .theme-minimal .inv-brand { font-size: 1.8rem; font-weight: 700; color: #0f172a; }
+    .theme-minimal .inv-tagline { font-size: 0.8rem; color: #64748b; }
+    .theme-minimal .inv-title-badge { font-size: 1.2rem; font-weight: 700; color: #3b82f6; }
+    .theme-minimal .inv-table th { background: #f8fafc; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 0.75rem 0.5rem; border-bottom: 1px solid #cbd5e1; }
+    .theme-minimal .inv-table td { border-bottom: 1px solid #f1f5f9; padding: 0.85rem 0.5rem; }
+    .theme-minimal .inv-footer-brand { border-top: 1px solid #e2e8f0; padding-top: 1.5rem; text-align: center; color: #94a3b8; font-size: 0.85rem; }
+
+    .inv-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; font-size: 0.88rem; }
+    .info-block h4 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 0.4rem; }
+    .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; font-size: 0.88rem; }
+    .inv-table th, .inv-table td { text-align: left; }
+    .inv-table .text-right { text-align: right; }
+    .inv-table .text-center { text-align: center; }
+    .totals-area { display: flex; justify-content: flex-end; margin-bottom: 2rem; }
+    .totals-box { width: 280px; font-size: 0.88rem; }
+    .totals-row { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid #f1f5f9; }
+    .totals-row.grand-total { border-top: 2px solid #000; border-bottom: 2px solid #000; font-size: 1.1rem; font-weight: 800; padding: 0.6rem 0; margin-top: 0.4rem; }
+    .notes-terms { font-size: 0.8rem; color: #64748b; line-height: 1.5; margin-top: 1rem; }
+    .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; color: #fff; }
+    .spinner { width: 48px; height: 48px; border: 5px solid rgba(255,255,255,0.2); border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media print {
+      body { background: #fff; }
+      header, .controls-panel, .preview-toolbar { display: none !important; }
+      .main-layout { display: block; padding: 0; margin: 0; max-width: 100%; }
+      .invoice-wrapper { background: transparent; padding: 0; box-shadow: none; }
+      .invoice-paper { box-shadow: none; padding: 0; min-height: auto; max-width: 100%; border-radius: 0; }
+      [contenteditable="true"] { outline: none !important; background: transparent !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <div id="loadingText" style="font-weight: 600; font-size: 1.1rem;">Analyzing with Gemini AI...</div>
+  </div>
+
+  <header>
+    <div class="brand-title">
+      <h1>AI Invoice Studio</h1>
+      <span class="badge">Gemini Powered</span>
+    </div>
+    <div class="api-config">
+      <input type="password" id="geminiApiKey" placeholder="Enter Google Gemini API Key" style="width: 250px;">
+      <button class="btn btn-secondary btn-sm" id="toggleKeyVisibility">👁️</button>
+      <select id="geminiModel">
+        <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="main-layout">
+    <div class="controls-panel">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="tab-ai-gen">🤖 AI Generate</button>
+        <button class="tab-btn" data-tab="tab-scan">📷 Scan Bill</button>
+        <button class="tab-btn" data-tab="tab-edit">✏️ Edit Data</button>
+        <button class="tab-btn" data-tab="tab-style">🎨 Brand Theme</button>
+      </div>
+
+      <div class="tab-content active" id="tab-ai-gen">
+        <div class="form-group">
+          <label>Describe your invoice or bill:</label>
+          <textarea id="aiPromptInput" class="form-control" placeholder="E.g., Create a Nike invoice for 2 pairs of Air Jordan 1s at $180 each and 3 Dri-FIT tees at $35 each..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Quick Suggestions:</label>
+          <div class="prompt-chips">
+            <span class="chip" onclick="applyQuickPrompt('cricket')">🏏 Cricket Gear & Kit Invoice</span>
+            <span class="chip" onclick="applyQuickPrompt('nike')">⚡ Nike Apparel & Shoes Invoice</span>
+            <span class="chip" onclick="applyQuickPrompt('newbalance')">👟 New Balance Running Gear</span>
+            <span class="chip" onclick="applyQuickPrompt('gym')">🏋️ Gym & Fitness Bill</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <button class="btn btn-primary btn-block" id="btnGenerateAI">✨ Generate with Gemini AI</button>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-scan">
+        <div class="form-group">
+          <label>Upload Bill or Invoice Image:</label>
+          <div class="dropzone" id="dropzone">
+            <div style="font-weight: 600;">Click or Drag & Drop invoice image here</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;">Supports JPG, PNG, WEBP</div>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+          </div>
+          <div id="filePreview" class="file-preview" style="display: none;">
+            <span id="fileName">invoice.jpg</span>
+            <button class="btn btn-danger btn-sm" id="btnRemoveFile">✕</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Or Paste Raw Invoice Text:</label>
+          <textarea id="rawInvoiceText" class="form-control" placeholder="Paste bill contents, receipt text, or email confirmation here..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Target Brand Format (Optional):</label>
+          <select id="targetBrandFormat" class="form-control">
+            <option value="keep">Keep Original Brand</option>
+            <option value="nike">Format as Nike Style</option>
+            <option value="newbalance">Format as New Balance Style</option>
+            <option value="cricket">Format as Cricket Sports Store</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-block" id="btnScanParse">🔍 Extract & Reformat with Gemini</button>
+      </div>
+
+      <div class="tab-content" id="tab-edit">
+        <div class="form-group">
+          <label>Brand Name:</label>
+          <input type="text" id="editBrandName" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Brand Slogan / Subtitle:</label>
+          <input type="text" id="editBrandTagline" class="form-control">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;" class="form-group">
+          <div>
+            <label>Invoice Number:</label>
+            <input type="text" id="editInvoiceNo" class="form-control">
+          </div>
+          <div>
+            <label>Date:</label>
+            <input type="date" id="editInvoiceDate" class="form-control">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Customer Name:</label>
+          <input type="text" id="editCustomerName" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Customer Address / Contact:</label>
+          <input type="text" id="editCustomerAddress" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Currency Symbol:</label>
+          <select id="editCurrency" class="form-control">
+            <option value="$">$ (USD)</option>
+            <option value="₹">₹ (INR)</option>
+            <option value="£">£ (GBP)</option>
+            <option value="€">€ (EUR)</option>
+            <option value="A$">A$ (AUD)</option>
+          </select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;" class="form-group">
+          <div>
+            <label>Tax Rate (%):</label>
+            <input type="number" id="editTaxRate" class="form-control" value="0" min="0" step="0.1">
+          </div>
+          <div>
+            <label>Discount Amount:</label>
+            <input type="number" id="editDiscount" class="form-control" value="0" min="0" step="0.5">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Line Items:</label>
+          <div id="itemsEditorList" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem;"></div>
+          <button class="btn btn-secondary btn-sm btn-block" id="btnAddItemRow">+ Add Item</button>
+        </div>
+        <div class="form-group">
+          <label>Payment Terms / Notes:</label>
+          <textarea id="editNotes" class="form-control"></textarea>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-style">
+        <label style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; display: block;">Select Brand Style Template:</label>
+        <div class="theme-picker">
+          <div class="theme-card active" data-theme="theme-nike" onclick="setTheme('theme-nike')">
+            <div class="theme-name">⚡ Nike</div>
+            <div class="theme-desc">Bold athletic, stark black & white typography</div>
+          </div>
+          <div class="theme-card" data-theme="theme-newbalance" onclick="setTheme('theme-newbalance')">
+            <div class="theme-name">👟 New Balance</div>
+            <div class="theme-desc">Heritage runner, crimson & grey accents</div>
+          </div>
+          <div class="theme-card" data-theme="theme-cricket" onclick="setTheme('theme-cricket')">
+            <div class="theme-name">🏏 Cricket Club</div>
+            <div class="theme-desc">Pitch green & gold sports shop format</div>
+          </div>
+          <div class="theme-card" data-theme="theme-minimal" onclick="setTheme('theme-minimal')">
+            <div class="theme-name">💼 Minimalist</div>
+            <div class="theme-desc">Clean standard corporate invoice</div>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top: 1.5rem;">
+          <label>Brand Color Customization:</label>
+          <input type="color" id="customColorPicker" value="#2563eb" style="width: 100%; height: 40px; border: none; cursor: pointer; border-radius: 8px;">
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-panel">
+      <div class="preview-toolbar">
+        <div style="font-size: 0.9rem; font-weight: 600; color: #475569;">
+          📄 Live Preview (Click text directly on invoice to edit)
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-secondary btn-sm" id="btnExportJson">💾 Export JSON</button>
+          <button class="btn btn-secondary btn-sm" id="btnResetSample">🔄 Sample Data</button>
+          <button class="btn btn-primary btn-sm" id="btnPrintInvoice">🖨️ Print / Save PDF</button>
+        </div>
+      </div>
+
+      <div class="invoice-wrapper">
+        <div class="invoice-paper theme-nike" id="invoicePaper">
+          <div>
+            <div class="inv-header">
+              <div>
+                <div class="inv-brand" id="dispBrandName" contenteditable="true">NIKE, INC.</div>
+                <div class="inv-tagline" id="dispBrandTagline" contenteditable="true">JUST DO IT. • OFFICIAL ORDER INVOICE</div>
+              </div>
+              <div style="text-align: right;">
+                <div class="inv-title-badge" id="dispInvoiceTitle">TAX INVOICE</div>
+                <div style="margin-top: 0.5rem; font-size: 0.85rem; font-weight: 700;">
+                  #<span id="dispInvoiceNo" contenteditable="true">NK-2026-9841</span>
+                </div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.2rem;">
+                  Date: <span id="dispInvoiceDate" contenteditable="true">2026-09-25</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="inv-info-grid">
+              <div class="info-block">
+                <h4>BILLED TO</h4>
+                <div style="font-weight: 700; font-size: 1rem;" id="dispCustomerName" contenteditable="true">Alex Carter</div>
+                <div style="color: #475569; margin-top: 0.2rem;" id="dispCustomerAddress" contenteditable="true">742 Evergreen Terrace, Springfield, OR 97477</div>
+                <div style="color: #475569;" id="dispCustomerEmail" contenteditable="true">alex.carter@example.com</div>
+              </div>
+              <div class="info-block" style="text-align: right;">
+                <h4>ISSUED BY</h4>
+                <div style="font-weight: 700;" id="dispVendorName" contenteditable="true">Nike Retail & Sports Distribution</div>
+                <div style="color: #475569;" id="dispVendorAddress" contenteditable="true">One Bowerman Drive, Beaverton, OR</div>
+                <div style="color: #475569;" id="dispVendorContact" contenteditable="true">support@nike.com | 1-800-806-6453</div>
+              </div>
+            </div>
+
+            <table class="inv-table">
+              <thead>
+                <tr>
+                  <th style="width: 50%;">ITEM DESCRIPTION</th>
+                  <th class="text-center" style="width: 15%;">QTY</th>
+                  <th class="text-right" style="width: 17%;">UNIT PRICE</th>
+                  <th class="text-right" style="width: 18%;">AMOUNT</th>
+                </tr>
+              </thead>
+              <tbody id="dispTableBody"></tbody>
+            </table>
+
+            <div class="totals-area">
+              <div class="totals-box">
+                <div class="totals-row">
+                  <span>Subtotal:</span>
+                  <span id="dispSubtotal">$0.00</span>
+                </div>
+                <div class="totals-row" id="rowDiscount">
+                  <span>Discount:</span>
+                  <span id="dispDiscount">-$0.00</span>
+                </div>
+                <div class="totals-row" id="rowTax">
+                  <span id="labelTax">Tax (0%):</span>
+                  <span id="dispTax">$0.00</span>
+                </div>
+                <div class="totals-row grand-total">
+                  <span>TOTAL DUE:</span>
+                  <span id="dispGrandTotal">$0.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="notes-terms">
+              <strong>Terms & Conditions:</strong>
+              <div id="dispTerms" contenteditable="true">
+                Goods sold are eligible for 30-day returns in original condition. Thank you for your business.
+              </div>
+            </div>
+            <div class="inv-footer-brand" id="dispFooterBrand">
+              NIKE • JUST DO IT
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let invoiceData = {
+      brandName: "NIKE, INC.",
+      brandTagline: "JUST DO IT. • OFFICIAL ORDER INVOICE",
+      invoiceNumber: "NK-2026-9841",
+      date: "2026-09-25",
+      currency: "$",
+      customer: { name: "Alex Carter", address: "742 Evergreen Terrace, Springfield, OR 97477", email: "alex.carter@example.com" },
+      vendor: { name: "Nike Retail & Sports Distribution", address: "One Bowerman Drive, Beaverton, OR", contact: "support@nike.com | 1-800-806-6453" },
+      items: [
+        { description: "Nike Air Zoom Pegasus 40 - Running Shoes", quantity: 1, unitPrice: 130.00 },
+        { description: "Nike Dri-FIT Legend Training Tee - Black (L)", quantity: 2, unitPrice: 35.00 },
+        { description: "Nike Everyday Plus Cushioned Crew Socks (3-Pack)", quantity: 1, unitPrice: 22.00 }
+      ],
+      discount: 15.00,
+      taxRate: 8.5,
+      terms: "Goods sold are eligible for 30-day returns in original condition. Thank you for choosing Nike athletes worldwide."
+    };
+
+    let uploadedBase64Image = null;
+
+    const PRESET_DATA = {
+      cricket: {
+        brandName: "LORD'S CRICKET & SPORTS HUB",
+        brandTagline: "OFFICIAL MATCH & CLUB EQUIPMENT GEAR",
+        theme: "theme-cricket",
+        currency: "₹",
+        items: [
+          { description: "SS Ton Master 500 English Willow Cricket Bat", quantity: 1, unitPrice: 18500.00 },
+          { description: "SG Test Pro Batting Legguards / Pads (Pair)", quantity: 1, unitPrice: 3800.00 },
+          { description: "Kookaburra Turf Regulation Red Leather Cricket Balls (Box of 6)", quantity: 2, unitPrice: 4200.00 },
+          { description: "Shrey Master Class Air 2.0 Titanium Helmet", quantity: 1, unitPrice: 7500.00 },
+          { description: "MRF Genius Wicket Keeping Gloves", quantity: 1, unitPrice: 2900.00 }
+        ],
+        discount: 2000.00,
+        taxRate: 5.0,
+        terms: "All cricket bats seasoned & knocked. 1-year warranty on handle."
+      },
+      nike: {
+        brandName: "NIKE, INC.",
+        brandTagline: "JUST DO IT. • OFFICIAL ORDER INVOICE",
+        theme: "theme-nike",
+        currency: "$",
+        items: [
+          { description: "Nike Air Zoom Pegasus 40 - Running Shoes", quantity: 1, unitPrice: 130.00 },
+          { description: "Nike Dri-FIT Legend Training Tee - Black (L)", quantity: 2, unitPrice: 35.00 },
+          { description: "Nike Everyday Plus Cushioned Crew Socks (3-Pack)", quantity: 1, unitPrice: 22.00 }
+        ],
+        discount: 15.00,
+        taxRate: 8.5,
+        terms: "Goods sold are eligible for 30-day returns in original condition. Thank you for choosing Nike."
+      },
+      newbalance: {
+        brandName: "NEW BALANCE ATHLETICS",
+        brandTagline: "MADE IN USA • RUNNING & LIFESTYLE HERITAGE",
+        theme: "theme-newbalance",
+        currency: "$",
+        items: [
+          { description: "New Balance Made in USA 990v6 - Grey / Castlerock", quantity: 1, unitPrice: 199.99 },
+          { description: "New Balance FuelCell SuperComp Elite v4", quantity: 1, unitPrice: 249.99 },
+          { description: "NB Athletics Classic Fleece Hoodie - Athletic Grey", quantity: 1, unitPrice: 75.00 }
+        ],
+        discount: 25.00,
+        taxRate: 7.0,
+        terms: "Official New Balance Invoice. Questions regarding warranty or sizing? Contact 1-800-595-9138."
+      },
+      gym: {
+        brandName: "TITAN STRENGTH & FITNESS",
+        brandTagline: "COMMERCIAL & HOME GYM EQUIPMENT",
+        theme: "theme-minimal",
+        currency: "$",
+        items: [
+          { description: "Olympic Barbell 20kg Hard Chrome Finish", quantity: 1, unitPrice: 245.00 },
+          { description: "Urethane Bumper Plate Pair (45 lbs)", quantity: 2, unitPrice: 160.00 },
+          { description: "Adjustable Incline / Flat Workout Bench", quantity: 1, unitPrice: 280.00 }
+        ],
+        discount: 40.00,
+        taxRate: 8.0,
+        terms: "Heavy equipment delivered curbside. Lifetime frame guarantee."
+      }
+    };
+
+    const geminiApiKeyInput = document.getElementById("geminiApiKey");
+    const geminiModelSelect = document.getElementById("geminiModel");
+    const toggleKeyVisibilityBtn = document.getElementById("toggleKeyVisibility");
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const loadingText = document.getElementById("loadingText");
+    const invoicePaper = document.getElementById("invoicePaper");
+
+    if (localStorage.getItem("gemini_api_key")) {
+      geminiApiKeyInput.value = localStorage.getItem("gemini_api_key");
+    }
+    geminiApiKeyInput.addEventListener("input", (e) => {
+      localStorage.setItem("gemini_api_key", e.target.value.trim());
+    });
+
+    toggleKeyVisibilityBtn.addEventListener("click", () => {
+      geminiApiKeyInput.type = geminiApiKeyInput.type === "password" ? "text" : "password";
+      toggleKeyVisibilityBtn.textContent = geminiApiKeyInput.type === "password" ? "👁️" : "🔒";
+    });
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    function setTheme(themeClass) {
+      document.querySelectorAll(".theme-card").forEach(c => c.classList.remove("active"));
+      const targetCard = document.querySelector(`.theme-card[data-theme="${themeClass}"]`);
+      if (targetCard) targetCard.classList.add("active");
+      invoicePaper.className = `invoice-paper ${themeClass}`;
+      updateFooterBrand();
+    }
+
+    function updateFooterBrand() {
+      const footer = document.getElementById("dispFooterBrand");
+      if (invoicePaper.classList.contains("theme-nike")) {
+        footer.textContent = `${invoiceData.brandName.toUpperCase()} • JUST DO IT.`;
+      } else if (invoicePaper.classList.contains("theme-newbalance")) {
+        footer.textContent = `${invoiceData.brandName.toUpperCase()} • ATHLETIC EXCELLENCE SINCE 1906`;
+      } else if (invoicePaper.classList.contains("theme-cricket")) {
+        footer.textContent = `CRICKET EQUIPMENT & CLUB APPAREL • CERTIFIED GENUINE GEAR`;
+      } else {
+        footer.textContent = `THANK YOU FOR YOUR PATRONAGE • ${invoiceData.brandName.toUpperCase()}`;
+      }
+    }
+
+    function renderInvoice() {
+      document.getElementById("dispBrandName").textContent = invoiceData.brandName;
+      document.getElementById("dispBrandTagline").textContent = invoiceData.brandTagline;
+      document.getElementById("dispInvoiceNo").textContent = invoiceData.invoiceNumber;
+      document.getElementById("dispInvoiceDate").textContent = invoiceData.date;
+      document.getElementById("dispCustomerName").textContent = invoiceData.customer.name;
+      document.getElementById("dispCustomerAddress").textContent = invoiceData.customer.address;
+      document.getElementById("dispCustomerEmail").textContent = invoiceData.customer.email || "";
+      document.getElementById("dispVendorName").textContent = invoiceData.vendor.name;
+      document.getElementById("dispVendorAddress").textContent = invoiceData.vendor.address;
+      document.getElementById("dispVendorContact").textContent = invoiceData.vendor.contact || "";
+      document.getElementById("dispTerms").textContent = invoiceData.terms;
+
+      const tbody = document.getElementById("dispTableBody");
+      tbody.innerHTML = "";
+      let subtotal = 0;
+      invoiceData.items.forEach((item, index) => {
+        const itemTotal = (item.quantity || 1) * (item.unitPrice || 0);
+        subtotal += itemTotal;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><div style="font-weight: 600;" contenteditable="true" onblur="updateItemDesc(${index}, this.innerText)">${item.description}</div></td>
+          <td class="text-center"><span contenteditable="true" onblur="updateItemQty(${index}, this.innerText)">${item.quantity}</span></td>
+          <td class="text-right"><span>${invoiceData.currency}</span><span contenteditable="true" onblur="updateItemPrice(${index}, this.innerText)">${Number(item.unitPrice).toFixed(2)}</span></td>
+          <td class="text-right" style="font-weight: 600;">${invoiceData.currency}${itemTotal.toFixed(2)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const discount = Number(invoiceData.discount) || 0;
+      const taxableAmount = Math.max(0, subtotal - discount);
+      const taxRate = Number(invoiceData.taxRate) || 0;
+      const taxAmount = (taxableAmount * taxRate) / 100;
+      const grandTotal = taxableAmount + taxAmount;
+
+      document.getElementById("dispSubtotal").textContent = `${invoiceData.currency}${subtotal.toFixed(2)}`;
+      document.getElementById("dispDiscount").textContent = `-${invoiceData.currency}${discount.toFixed(2)}`;
+      document.getElementById("labelTax").textContent = `Tax (${taxRate}%):`;
+      document.getElementById("dispTax").textContent = `${invoiceData.currency}${taxAmount.toFixed(2)}`;
+      document.getElementById("dispGrandTotal").textContent = `${invoiceData.currency}${grandTotal.toFixed(2)}`;
+
+      updateFooterBrand();
+      syncFormFields();
+    }
+
+    function syncFormFields() {
+      document.getElementById("editBrandName").value = invoiceData.brandName;
+      document.getElementById("editBrandTagline").value = invoiceData.brandTagline;
+      document.getElementById("editInvoiceNo").value = invoiceData.invoiceNumber;
+      document.getElementById("editInvoiceDate").value = invoiceData.date;
+      document.getElementById("editCustomerName").value = invoiceData.customer.name;
+      document.getElementById("editCustomerAddress").value = invoiceData.customer.address;
+      document.getElementById("editCurrency").value = invoiceData.currency;
+      document.getElementById("editTaxRate").value = invoiceData.taxRate;
+      document.getElementById("editDiscount").value = invoiceData.discount;
+      document.getElementById("editNotes").value = invoiceData.terms;
+
+      const itemsList = document.getElementById("itemsEditorList");
+      itemsList.innerHTML = "";
+      invoiceData.items.forEach((item, index) => {
+        const row = document.createElement("div");
+        row.style.cssText = "display: flex; gap: 0.3rem; align-items: center;";
+        row.innerHTML = `
+          <input type="text" class="form-control" style="flex: 2;" value="${item.description}" placeholder="Description" onchange="updateItemDesc(${index}, this.value)">
+          <input type="number" class="form-control" style="width: 55px;" value="${item.quantity}" min="1" placeholder="Qty" onchange="updateItemQty(${index}, this.value)">
+          <input type="number" class="form-control" style="width: 80px;" value="${item.unitPrice}" step="0.5" placeholder="Price" onchange="updateItemPrice(${index}, this.value)">
+          <button class="btn btn-danger btn-sm" onclick="removeItemRow(${index})">✕</button>
+        `;
+        itemsList.appendChild(row);
+      });
+    }
+
+    window.updateItemDesc = (index, val) => { invoiceData.items[index].description = val.trim(); renderInvoice(); };
+    window.updateItemQty = (index, val) => { invoiceData.items[index].quantity = parseInt(val) || 1; renderInvoice(); };
+    window.updateItemPrice = (index, val) => { invoiceData.items[index].unitPrice = parseFloat(val) || 0; renderInvoice(); };
+    window.removeItemRow = (index) => { invoiceData.items.splice(index, 1); renderInvoice(); };
+
+    document.getElementById("btnAddItemRow").addEventListener("click", () => {
+      invoiceData.items.push({ description: "New Item", quantity: 1, unitPrice: 10.00 });
+      renderInvoice();
+    });
+
+    document.getElementById("editBrandName").addEventListener("input", e => { invoiceData.brandName = e.target.value; renderInvoice(); });
+    document.getElementById("editBrandTagline").addEventListener("input", e => { invoiceData.brandTagline = e.target.value; renderInvoice(); });
+    document.getElementById("editInvoiceNo").addEventListener("input", e => { invoiceData.invoiceNumber = e.target.value; renderInvoice(); });
+    document.getElementById("editInvoiceDate").addEventListener("input", e => { invoiceData.date = e.target.value; renderInvoice(); });
+    document.getElementById("editCustomerName").addEventListener("input", e => { invoiceData.customer.name = e.target.value; renderInvoice(); });
+    document.getElementById("editCustomerAddress").addEventListener("input", e => { invoiceData.customer.address = e.target.value; renderInvoice(); });
+    document.getElementById("editCurrency").addEventListener("change", e => { invoiceData.currency = e.target.value; renderInvoice(); });
+    addEventListener("change", e => { invoiceData.currency = e.target.value; renderInvoice(); });
+    document.getElementById("editTaxRate").addEventListener("input", e => { invoiceData.taxRate = parseFloat(e.target.value) || 0; renderInvoice(); });
+    document.getElementById("editDiscount").addEventListener("input", e => { invoiceData.discount = parseFloat(e.target.value) || 0; renderInvoice(); });
+    document.getElementById("editNotes").addEventListener("input", e => { invoiceData.terms = e.target.value; renderInvoice(); });
+
+    window.applyQuickPrompt = (key) => {
+      const promptInput = document.getElementById("aiPromptInput");
+      if (key === 'cricket') {
+        promptInput.value = "Create a professional Cricket Store invoice for Lord's Cricket Hub. Include 1 SS Ton English Willow Bat ($220), 1 pair of SG Test Batting Pads ($55), 2 boxes of Kookaburra Leather balls ($40 each), and 1 Shrey Masterclass Titanium Helmet ($95). Apply 10% club discount for customer Rohit Sharma.";
+        setTheme('theme-cricket');
+      } else if (key === 'nike') {
+        promptInput.value = "Create an official Nike invoice for Alex Carter with 1 pair of Air Jordan 1 Retro ($180), 2 Dri-FIT Athletic Training Tees ($38 each), and 1 Nike Heritage Backpack ($45). Add 8.5% sales tax and $15 member coupon.";
+        setTheme('theme-nike');
+      } else if (key === 'newbalance') {
+        promptInput.value = "Generate a New Balance invoice for customer David Miller. Include 1 New Balance 990v6 ($200), 1 pair of FuelCell SuperComp running shoes ($240), and 1 classic NB grey fleece hoodie ($75). Apply 5% discount.";
+        setTheme('theme-newbalance');
+      } else if (key === 'gym') {
+        promptInput.value = "Create an equipment invoice from Titan Fitness for 1 Olympic 20kg Barbell ($250), 2 pairs of 45lb bumper plates ($150 each), and 1 flat weight bench ($180).";
+        setTheme('theme-minimal');
+      }
+    };
+
+    async function callGemini(contents, systemInstruction) {
+      const apiKey = geminiApiKeyInput.value.trim();
+      if (!apiKey) {
+        alert("Please enter your Google Gemini API Key in the top bar to use AI features.");
+        geminiApiKeyInput.focus();
+        throw new Error("Missing API Key");
+      }
+      const model = geminiModelSelect.value;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+      const payload = {
+        contents: contents,
+        generationConfig: { temperature: 0.2, responseMimeType: "application/json" }
+      };
+      if (systemInstruction) {
+        payload.systemInstruction = { parts: [{ text: systemInstruction }] };
+      }
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Gemini API Error (${response.status}): ${errText}`);
+      }
+      const json = await response.json();
+      const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) throw new Error("No response content generated by Gemini.");
+      try {
+        return JSON.parse(rawText);
+      } catch (e) {
+        return JSON.parse(rawText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim());
+      }
+    }
+
+    const INVOICE_JSON_SCHEMA_DESC = `
+{
+  "brandName": "Brand or store name",
+  "brandTagline": "Slogan or official subtitle",
+  "invoiceNumber": "Invoice number or Order ID",
+  "date": "YYYY-MM-DD",
+  "currency": "$ or ₹ or € or £",
+  "theme": "theme-nike OR theme-newbalance OR theme-cricket OR theme-minimal",
+  "customer": { "name": "Customer Name", "address": "Customer address", "email": "customer email" },
+  "vendor": { "name": "Vendor Name", "address": "Vendor address", "contact": "Contact info" },
+  "items": [{ "description": "Item description", "quantity": 1, "unitPrice": 100.00 }],
+  "discount": 0.00,
+  "taxRate": 0.0,
+  "terms": "Return policy or terms"
+}`;
+
+    document.getElementById("btnGenerateAI").addEventListener("click", async () => {
+      const prompt = document.getElementById("
