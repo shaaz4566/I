@@ -20,18 +20,17 @@ nav{overflow:auto}.nav-label{font-size:9px;font-weight:700;color:#999ba3;letter-
 @media(max-width:1050px){.stats{grid-template-columns:repeat(2,1fr)}.dashboard-grid{grid-template-columns:1fr}.search{display:none}}
 @media(max-width:760px){.sidebar{width:72px;padding:15px 9px}.brand{padding:5px 6px 20px}.brand div,.nav-label,.sidebar-foot div:not(.mini-logo){display:none}.nav-item{justify-content:center}.main{margin-left:72px;width:calc(100% - 72px)}.topbar{padding:0 14px}.content{padding:16px}.top-actions .icon-btn{display:none}.page-head{align-items:flex-start;gap:12px}.page-title{font-size:23px}.form-grid,.form-grid.three{grid-template-columns:1fr}.item-row{grid-template-columns:1fr 70px 100px 100px 38px;overflow:auto}.qr-box{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
 @media print{
-  @page{size:A4;margin:12mm}
+  @page{size:A4;margin:0}
   body{background:#fff!important;color:#111!important}
   #app{display:none!important}.print-only{display:block!important}
   .print-invoice{font-family:Arial,sans-serif;color:#111;background:#fff}
-  .print-logo-head{text-align:center;padding:0 0 14px;border-bottom:1px solid #ddd}.print-logo-head img{display:block;width:190px;height:auto;max-height:90px;object-fit:contain;margin:0 auto}
+  .print-logo-head{text-align:center;padding:12mm 0 8mm;border-bottom:1px solid #ddd}.print-logo-head img{display:block;width:210px;height:auto;max-height:72px;object-fit:contain;margin:0 auto}.print-invoice{padding:0 12mm 10mm;box-sizing:border-box;min-height:297mm}
   .print-head{display:flex;justify-content:space-between;gap:20px;border-bottom:2px solid #111;padding:16px 0}
   .print-company h1{font-size:20px;margin:0}.print-company p,.print-meta p{margin:3px 0;font-size:10px;color:#555}
   .print-meta{text-align:right}.print-title{text-align:center;font-size:24px;margin:24px 0 18px}
   .bill-box{display:grid;grid-template-columns:1fr 1fr;border:1px solid #ddd;padding:13px;gap:20px}.bill-box h4{margin:0 0 8px;font-size:10px;text-transform:uppercase;color:#777}.bill-box p{margin:3px 0;font-size:11px}
   .print-table{width:100%;border-collapse:collapse;margin-top:18px;font-size:10px}.print-table th,.print-table td{padding:9px;border-bottom:1px solid #ddd;text-align:left}.print-table th:last-child,.print-table td:last-child{text-align:right}
-  .print-bottom{display:grid;grid-template-columns:1fr 200px;gap:25px;margin-top:22px}.print-qr{text-align:center}.print-qr img{width:150px;height:150px}.print-total{margin-left:auto;width:230px}.print-total div{display:flex;justify-content:space-between;padding:5px 0;font-size:11px}.print-total .grand{font-size:16px;font-weight:bold;border-top:1px solid #111;margin-top:5px;padding-top:9px}
-  .print-foot{border-top:1px solid #ddd;margin-top:35px;padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:#666}.signature{text-align:right;margin-top:45px;font-size:10px}
+  .print-bottom{display:grid;grid-template-columns:1fr 200px;gap:25px;margin-top:22px}.print-qr{text-align:center}.print-qr img{width:150px;height:150px}.print-total{margin-left:auto;width:230px}.print-total div{display:flex;justify-content:space-between;padding:5px 0;font-size:11px}.print-total .grand{font-size:16px;font-weight:bold;border-top:1px solid #111;margin-top:5px;padding-top:9px}.signature{text-align:right;margin-top:45px;font-size:10px}
 }
 .error-card{display:flex;gap:18px;align-items:flex-start;max-width:900px;margin:20px 0}.error-icon{width:42px;height:42px;flex:0 0 42px;border-radius:12px;display:grid;place-items:center;background:#fff1f1;color:var(--danger);font-weight:800;font-size:20px}.error-details{white-space:pre-wrap;overflow:auto;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text)}
 .table-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
