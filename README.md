@@ -18,3 +18,15 @@ This is a static app: there is no Node server, database, API key, or environment
 - Startup data is normalized so malformed/old localStorage records do not crash the entire UI.
 - Google Fonts were removed from the critical path so the UI does not depend on an external font request.
 - QR generation still uses the QR library CDN when an invoice is being created. If that CDN is unavailable, the invoice workflow remains usable and shows the UPI details instead of crashing.
+
+
+## Record management update
+- Edit and delete invoices.
+- Edit invoice customer details and line items.
+- Change invoice/payment status, including partial payment amount.
+- Edit/delete product and service catalogue entries.
+- Edit/delete customers and projects.
+- Edit/delete expenses and purchases.
+- Purchases and expenses support tags/categories.
+- Payment records can be deleted; invoice status can be edited from Payments.
+- Existing invoice line items remain unchanged when a catalogue product/service is edited or deleted.

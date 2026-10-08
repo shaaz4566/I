@@ -34,3 +34,9 @@ nav{overflow:auto}.nav-label{font-size:9px;font-weight:700;color:#999ba3;letter-
   .print-foot{border-top:1px solid #ddd;margin-top:35px;padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:#666}.signature{text-align:right;margin-top:45px;font-size:10px}
 }
 .error-card{display:flex;gap:18px;align-items:flex-start;max-width:900px;margin:20px 0}.error-icon{width:42px;height:42px;flex:0 0 42px;border-radius:12px;display:grid;place-items:center;background:#fff1f1;color:var(--danger);font-weight:800;font-size:20px}.error-details{white-space:pre-wrap;overflow:auto;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text)}
+.table-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.table-actions button{white-space:nowrap}
+.table-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.table-actions button{white-space:nowrap}
+.table-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.table-actions button{white-space:nowrap}
