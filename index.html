@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b0b0c">
+  <title>SZC ERP — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="assets/szc-logo.png" alt="SZC">
+      <div><strong>SZC Websites</strong><small>POS / ERP</small></div>
+    </div>
+    <nav>
+      <div class="nav-label">WORKSPACE</div>
+      <button class="nav-item active" data-view="dashboard"><span>⌂</span>Dashboard</button>
+
+      <div class="nav-label">SALES</div>
+      <button class="nav-item" data-view="invoices"><span>▣</span>Invoices</button>
+      <button class="nav-item" data-view="quotations"><span>◇</span>Quotations</button>
+      <button class="nav-item" data-view="estimates"><span>◫</span>Estimates</button>
+      <button class="nav-item" data-view="receipts"><span>✓</span>Receipts</button>
+
+      <div class="nav-label">CUSTOMERS</div>
+      <button class="nav-item" data-view="customers"><span>♙</span>Customers</button>
+      <button class="nav-item" data-view="projects"><span>◈</span>Projects</button>
+
+      <div class="nav-label">CATALOGUE</div>
+      <button class="nav-item" data-view="services"><span>⌘</span>Services</button>
+
+      <div class="nav-label">FINANCE</div>
+      <button class="nav-item" data-view="payments"><span>₹</span>Payments</button>
+      <button class="nav-item" data-view="expenses"><span>−</span>Expenses</button>
+      <button class="nav-item" data-view="purchases"><span>+</span>Purchases</button>
+      <button class="nav-item" data-view="credit-notes"><span>↙</span>Credit Notes</button>
+      <button class="nav-item" data-view="debit-notes"><span>↗</span>Debit Notes</button>
+
+      <div class="nav-label">ANALYTICS</div>
+      <button class="nav-item" data-view="reports"><span>▥</span>Reports</button>
+
+      <div class="nav-label">SYSTEM</div>
+      <button class="nav-item" data-view="settings"><span>⚙</span>Settings</button>
+      <button class="nav-item" data-view="backup"><span>⇩</span>Backup & Restore</button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="mini-logo">SZC</div>
+      <div><strong>SZC Websites</strong><small>Local workspace</small></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="crumbs"><span>SZC ERP</span><b>/</b><strong id="crumb">Dashboard</strong></div>
+      <div class="top-actions">
+        <div class="search"><span>⌕</span><input id="globalSearch" placeholder="Search invoices, customers..."></div>
+        <button class="icon-btn" id="themeBtn" title="Toggle theme">◐</button>
+        <button class="icon-btn" title="Notifications">♧</button>
+        <button class="primary" id="topCreate">+ Create Invoice</button>
+      </div>
+    </header>
+
+    <section id="content" class="content"></section>
+  </main>
+</div>
+
+<div id="modalRoot"></div>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
