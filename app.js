@@ -14,8 +14,42 @@ let currentView="dashboard";
 let editingInvoice=null;
 let toastTimer;
 
-function load(){try{return Object.assign({},DEFAULTS,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch{return structuredClone(DEFAULTS)}}
-function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function cloneDefaults(){return JSON.parse(JSON.stringify(DEFAULTS))}
+function load(){
+  const base=cloneDefaults();
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(!raw)return base;
+    const saved=JSON.parse(raw);
+    if(!saved || typeof saved!=="object")return base;
+    const merged={...base,...saved,settings:{...base.settings,...(saved.settings||{})}};
+    for(const key of ["customers","invoices","payments","expenses","purchases","quotations","estimates","receipts","creditNotes","debitNotes","services"]){
+      if(!Array.isArray(merged[key]))merged[key]=base[key];
+    }
+    if(!Number.isFinite(Number(merged.settings.nextInvoice)) || Number(merged.settings.nextInvoice)<1)merged.settings.nextInvoice=1;
+    return merged;
+  }catch(err){
+    console.warn("SZC ERP local data could not be loaded; starting with safe defaults.",err);
+    return base;
+  }
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(db));return true}
+  catch(err){console.error("SZC ERP could not save local data",err);toast("Could not save locally. Check browser storage permissions.");return false}
+}
+function resetLocalData(){
+  try{localStorage.removeItem(KEY)}catch{}
+  db=cloneDefaults(); editingInvoice=null; save(); render(); toast("Local ERP data reset");
+}
+function showFatalError(err){
+  console.error("SZC ERP error",err);
+  const content=document.getElementById("content");
+  if(!content)return;
+  const message=esc(err?.message||String(err)||"Unknown error");
+  content.innerHTML=`<div class="card form-card error-card"><div class="error-icon">!</div><div><div class="eyebrow">Application error</div><h1 class="page-title">SZC ERP could not render this page</h1><p class="helper" style="margin-top:10px">The app is still loaded, but one module failed while rendering. Your local data has not been deleted.</p><details style="margin-top:16px"><summary>Technical details</summary><pre class="error-details">${message}</pre></details><div class="actions-row" style="justify-content:flex-start"><button class="primary" onclick="resetLocalData()">Reset local ERP data</button><button class="ghost" onclick="location.reload()">Reload app</button></div></div></div>`;
+}
+window.addEventListener("error",e=>{if(e.error)showFatalError(e.error)});
+window.addEventListener("unhandledrejection",e=>showFatalError(e.reason||new Error("Unhandled promise rejection")));
 function money(n){return new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:2}).format(Number(n)||0)}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 function dateStr(v=Date.now()){return new Date(v).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}
@@ -27,10 +61,13 @@ function bumpInvoice(){db.settings.nextInvoice++;save()}
 function invoiceTotal(inv){return sum(inv.items,i=>i.qty*i.rate*(1-(i.discount||0)/100))}
 function thisMonthInvoices(){let d=new Date(),m=d.getMonth(),y=d.getFullYear();return db.invoices.filter(i=>{let x=new Date(i.date);return x.getMonth()===m&&x.getFullYear()===y})}
 function setView(v){currentView=v;document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===v));render();window.scrollTo({top:0,behavior:"smooth"})}
-document.querySelectorAll(".nav-item").forEach(b=>b.onclick=()=>setView(b.dataset.view));
-document.getElementById("topCreate").onclick=()=>setView("new-invoice");
-document.getElementById("themeBtn").onclick=()=>document.body.classList.toggle("dark");
-document.getElementById("globalSearch").oninput=e=>{if(e.target.value.trim() && currentView!=="invoices")setView("invoices")};
+function bindStatic(){
+  document.querySelectorAll(".nav-item").forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.getElementById("topCreate")?.addEventListener("click",()=>setView("new-invoice"));
+  document.getElementById("themeBtn")?.addEventListener("click",()=>document.body.classList.toggle("dark"));
+  document.getElementById("globalSearch")?.addEventListener("input",e=>{if(e.target.value.trim() && currentView!=="invoices")setView("invoices")});
+}
+
 
 function render(){
  const names={"dashboard":"Dashboard","invoices":"Invoices","quotations":"Quotations","estimates":"Estimates","receipts":"Receipts","customers":"Customers","projects":"Projects","services":"Services","payments":"Payments","expenses":"Expenses","purchases":"Purchases","credit-notes":"Credit Notes","debit-notes":"Debit Notes","reports":"Reports","settings":"Settings","backup":"Backup & Restore","new-invoice":"Create Invoice"};
@@ -180,5 +217,6 @@ function downloadBackup(){const blob=new Blob([JSON.stringify(db,null,2)],{type:
 function restoreBackup(){const f=document.getElementById("restoreFile").files[0];if(!f)return toast("Choose a backup file");const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);db=x;save();toast("Backup restored");render()}catch{toast("Invalid backup file")}};r.readAsText(f)}
 function exportCSV(key){const rows=db[key]||[];let csv="Invoice,Customer,Date,Status,Total\n"+rows.map(i=>`"${i.number}","${i.customer.name}","${dateStr(i.date)}","${i.status}","${invoiceTotal(i).toFixed(2)}"`).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="szc-invoices.csv";a.click()}
 
-window.setView=setView;window.openCustomerModal=openCustomerModal;window.saveCustomer=saveCustomer;window.deleteCustomer=deleteCustomer;window.openServiceModal=openServiceModal;window.saveService=saveService;window.deleteService=deleteService;window.addInvoiceRow=addInvoiceRow;window.serviceChanged=serviceChanged;window.calcInvoice=calcInvoice;window.saveInvoice=saveInvoice;window.saveAndPrint=saveAndPrint;window.openInvoice=openInvoice;window.editInvoice=editInvoice;window.printInvoice=printInvoice;window.markPaid=markPaid;window.openMoneyModal=openMoneyModal;window.saveMoney=saveMoney;window.saveSettings=saveSettings;window.downloadBackup=downloadBackup;window.restoreBackup=restoreBackup;window.exportCSV=exportCSV;
-render();
+window.setView=setView;window.openCustomerModal=openCustomerModal;window.saveCustomer=saveCustomer;window.deleteCustomer=deleteCustomer;window.openServiceModal=openServiceModal;window.saveService=saveService;window.deleteService=deleteService;window.addInvoiceRow=addInvoiceRow;window.serviceChanged=serviceChanged;window.calcInvoice=calcInvoice;window.saveInvoice=saveInvoice;window.saveAndPrint=saveAndPrint;window.openInvoice=openInvoice;window.editInvoice=editInvoice;window.printInvoice=printInvoice;window.markPaid=markPaid;window.openMoneyModal=openMoneyModal;window.saveMoney=saveMoney;window.saveSettings=saveSettings;window.downloadBackup=downloadBackup;window.restoreBackup=restoreBackup;window.exportCSV=exportCSV;window.resetLocalData=resetLocalData;
+function boot(){try{bindStatic();render()}catch(err){showFatalError(err)}}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
